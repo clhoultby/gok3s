@@ -14,7 +14,7 @@ spec:
         app: gok3s
     spec:
       containers:
-      - name: gok3s_container
+      - name: gok3s-container
         image: clhoultby/k3s:v1
         imagePullPolicy: IfNotPresent
         ports:
