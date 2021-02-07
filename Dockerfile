@@ -13,4 +13,4 @@ FROM scratch
 
 COPY --from=builder /go/bin/gow3s /go/bin/gow3s
 
-ENTRYPOINT [ "/go/bin/gow3s" ]
+CMD [ "./main" ]
