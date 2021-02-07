@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
@@ -14,17 +18,45 @@ func main() {
 			fmt.Println("Recover", r)
 		}
 	})()
+	
+	mux := http.NewServeMux();
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("request recieved")
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("request received")
 		io.WriteString(w, "Hello World")
 	})
 
-	http.HandleFunc("/end", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Killing proccess")
-		io.WriteString(w, "Goodbye cruel world")
-		defer os.Exit(0)
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("health check request received")
+		w.WriteHeader(http.StatusOK)
 	})
 
-	http.ListenAndServe(":80", nil)
+	mux.HandleFunc("/readiness", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("health check request received")
+		w.WriteHeader(http.StatusOK)
+	})
+
+	// create the server instance passing our ready to go mux
+	server := &http.Server{
+		Addr: ":8080",
+		Handler: mux,
+	}
+
+	go func ()  {
+		server.ListenAndServe()
+	}()
+
+	interruptChan := make(chan os.Signal, 1)
+	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	// Block until we receive our signal.
+	<-interruptChan
+
+	// Create a deadline to wait for.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	server.Shutdown(ctx)
+
+	fmt.Println("Shutting down")
+	os.Exit(0)
 }
