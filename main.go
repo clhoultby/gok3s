@@ -9,6 +9,11 @@ import (
 
 func main() {
 	fmt.Println("starting server")
+	go (func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recover", r)
+		}
+	})()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("request recieved")
