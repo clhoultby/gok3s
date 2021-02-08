@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: gok3s-container
-        image: clhoultby/k3s:v1
+        image: clhoultby/k3s:v1.2
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
